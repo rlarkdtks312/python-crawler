@@ -21,17 +21,19 @@ from selenium.webdriver.common.by import By
 # Chrome driver 자동 업데이트
 from webdriver_manager.chrome import ChromeDriverManager 
 
+
+
 # Chrome driver Manager를 통해 크롬 드라이버 자동 설치 > 최신 버전을 설치 > Service에 저장
 service = Service(excutable_path=ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+options = Options()
+options.headless = True
+driver = webdriver.Chrome(service=service, options=options)
 
-# 나라장터 용역 페이지로 이동
-driver.get("https://www.g2b.go.kr:8081/ep/preparation/prestd/preStdSrch.do?taskClCd=5")
+# 키워드 리스트
+key_words = ['데이터', 'AI', '인공지능', 'NAS', '환경성보장제']
 
-# 사업명 검색어 입력
-search_box = driver.find_element(By.XPATH, '//*[@id="prodNm"]')
-search_box.clear()
-search_box.send_keys("데이터")
+# 키워드별로 생성된 데이터프레임을 담기위한 리스트
+dfs = []
 
 # 접수일자 조정
 weekday = datetime.today().weekday()
@@ -42,91 +44,114 @@ if weekday == 1:
 elif weekday == 4:
     preday = (datetime.today() - timedelta(3)).strftime("%Y%m%d") # 지난 화요일부터 이번 금요일까지
 
-start_date = driver.find_element(By.XPATH, '//*[@id="toRcptDt"]')
-start_date.clear()
-start_date.send_keys(today)
-end_data = driver.find_element(By.XPATH, '//*[@id="fromRcptDt"]')
-end_data.clear()
-end_data.send_keys(preday)
+# 크롤링 수행 함수
+def crawler(key_word):
+    # 나라장터 용역 페이지로 이동
+    driver.get("https://www.g2b.go.kr:8081/ep/preparation/prestd/preStdSrch.do?taskClCd=5")
 
-# 출력목록수 최대로 조정
-ouput_counts = driver.find_element(By.XPATH, '//*[@id="recordCountPerPage"]')
-ouput_counts = Select(ouput_counts)
-ouput_counts.select_by_value('100')
-
-# 검색버튼 누르기
-search_button = driver.find_element(By.XPATH, '//*[@id="frmSearch1"]/div[3]/div/a[1]/span')
-search_button.click()
+    # 사업명 검색어 입력
+    search_box = driver.find_element(By.XPATH, '//*[@id="prodNm"]')
+    search_box.clear()
+    search_box.send_keys(key_word)
 
 
 
-# 데이터프레임 틀 생성
-table_head = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/thead')
-table_columns = table_head.text.split(' ')
+    start_date = driver.find_element(By.XPATH, '//*[@id="toRcptDt"]')
+    start_date.clear()
+    start_date.send_keys(today)
+    end_data = driver.find_element(By.XPATH, '//*[@id="fromRcptDt"]')
+    end_data.clear()
+    end_data.send_keys(preday)
 
-df = pd.DataFrame(columns = table_columns) # 데이터프레임 및 컬럼 생성
-df.shape
+    # 출력목록수 최대로 조정
+    ouput_counts = driver.find_element(By.XPATH, '//*[@id="recordCountPerPage"]')
+    ouput_counts = Select(ouput_counts)
+    ouput_counts.select_by_value('100')
 
-# 행 단위 데이터 수집 함수
-def row_crawler():
-    # 테이블 바디 부분
-    table_body = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/tbody')
-    table_rows = table_body.text.split('\n')
-    chunk_size = len(table_columns)
-    table_rows = [table_rows[i:i + chunk_size] for i in range(0, len(table_rows), chunk_size)]
-    table_rows[0]
-
-    # 데이터 프레임에 행단위로 삽입
-    for row_data in tqdm(table_rows): # 행단위 데이터 삽입
-        print(len(row_data))
-        df.loc[len(df)] = row_data
-
-# 첫 페이지 크롤링, df변수에 행단위 크롤링 후 데이터 삽입 함수 실행
-row_crawler()
-
-# 반복작업을 위한 페이지 수 확인 
-page_elements = driver.find_element(By.XPATH, '//*[@id="pagination"]')
-page_list = page_elements.text.split(' ')
-page_list
+    # 검색버튼 누르기
+    search_button = driver.find_element(By.XPATH, '//*[@id="frmSearch1"]/div[3]/div/a[1]/span')
+    search_button.click()
 
 
-# 크롤링
-if len(page_list) < 12:
-    # 페이지 이동을 위한 인덱스 리스트 생성
-    index_list = [1] + [i for i in range(3,len(page_list),1)]
-    
-    # 페이지 이동및 행 단위 데이터 크롤링 후 df변수에 데이터 삽입
-    for i in index_list:
-        next_page = driver.find_element(By.XPATH, f'//*[@id="pagination"]/a[{i}]')
-        next_page.click()
-        row_crawler()
-else:
-    # 페이지 이동을 위한 인덱스 리스트 생성
-    index_list = [1] + [i for i in range(3,len(page_list),1)]
-    
-    # 페이지 이동및 행 단위 데이터 크롤링 후 df변수에 데이터 삽입
-    for i in index_list:
-        next_page = driver.find_element(By.XPATH, f'//*[@id="pagination"]/a[{i}]')
-        next_page.click()
-        row_crawler()
 
-        if i == 11:
-            # 반복작업을 위한 페이지 수 확인 
-            page_elements = driver.find_element(By.XPATH, '//*[@id="pagination"]')
-            page_list = page_elements.text.split(' ')
-            index_list = [i for i in range(3,len(page_list)-1,1)]
+    # 데이터프레임 틀 생성
+    table_head = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/thead')
+    table_columns = table_head.text.split(' ')
 
+    df = pd.DataFrame(columns = table_columns) # 데이터프레임 및 컬럼 생성
+    df.shape
+
+    # 행 단위 데이터 수집 함수
+    def row_crawler():
+        # 테이블 바디 부분
+        table_body = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/tbody')
+        table_rows = table_body.text.split('\n')
+        chunk_size = len(table_columns)
+        table_rows = [table_rows[i:i + chunk_size] for i in range(0, len(table_rows), chunk_size)]
+        table_rows[0]
+
+        # 데이터 프레임에 행단위로 삽입
+        for row_data in tqdm(table_rows): # 행단위 데이터 삽입
+            print(len(row_data))
+            df.loc[len(df)] = row_data
+
+    # 첫 페이지 크롤링, df변수에 행단위 크롤링 후 데이터 삽입 함수 실행
+    row_crawler()
+
+    # 반복작업을 위한 페이지 수 확인
+    try:
+        page_elements = driver.find_element(By.XPATH, '//*[@id="pagination"]')
+        page_list = page_elements.text.split(' ')
+        page_list
+
+
+        # 크롤링
+        if len(page_list) < 12:
+            # 페이지 이동을 위한 인덱스 리스트 생성
+            index_list = [1] + [i for i in range(3,len(page_list),1)]
+            
+            # 페이지 이동및 행 단위 데이터 크롤링 후 df변수에 데이터 삽입
             for i in index_list:
                 next_page = driver.find_element(By.XPATH, f'//*[@id="pagination"]/a[{i}]')
                 next_page.click()
                 row_crawler()
+        else:
+            # 페이지 이동을 위한 인덱스 리스트 생성
+            index_list = [1] + [i for i in range(3,len(page_list),1)]
             
-df.to_csv(f'./사전규격 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
+            # 페이지 이동및 행 단위 데이터 크롤링 후 df변수에 데이터 삽입
+            for i in index_list:
+                next_page = driver.find_element(By.XPATH, f'//*[@id="pagination"]/a[{i}]')
+                next_page.click()
+                row_crawler()
 
+                if i == 11:
+                    # 반복작업을 위한 페이지 수 확인 
+                    page_elements = driver.find_element(By.XPATH, '//*[@id="pagination"]')
+                    page_list = page_elements.text.split(' ')
+                    index_list = [i for i in range(3,len(page_list)-1,1)]
 
-# 사전규격 상세 내용을 크롤링하기 위함
-# temp_butt = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/tbody/tr[1]/td[4]/div/a')
-# temp_butt.click()
+                    for i in index_list:
+                        next_page = driver.find_element(By.XPATH, f'//*[@id="pagination"]/a[{i}]')
+                        next_page.click()
+                        row_crawler()
+    except:
+        pass
 
-# sang_table = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/table')
-# sang_table
+    # 키워드 컬럼 추가
+    df['키워드'] = key_word
+
+    # 키워드별 데이터프레임 반환
+    return df
+
+# 실행부
+for key_word in key_words:
+    try:
+        temp = crawler(key_word)
+        dfs.append(temp)
+    except:
+        pass
+
+result_df = pd.concat(dfs, axis=0)
+result_df.to_csv(f'./사전규격 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
+driver.quit()
