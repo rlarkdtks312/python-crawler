@@ -26,14 +26,12 @@ elif weekday == 4:
 
 msg = MIMEMultipart()
 
-msg['From'] = '보내는주소'
-msg['To'] = '받는주소'
+msg['From'] = '보내는이메일'
+msg['To'] = '받는이메일'
 msg['Date'] = formatdate(localtime=True)
 msg['Subject'] = Header(s=f'나라장터 크롤링 결과({preday}~{today}) 공유 드립니다.', charset='utf-8')
 body = MIMEText('첨부된 파일 2개를 확인해 주세요.', _charset='utf-8')
 msg.attach(body)
-
-
 
 files = list()
 files.append(f'./본공고 {preday} ~ {today}.csv')
@@ -47,6 +45,6 @@ for f in files:
     msg.attach(part)
 
 mailServer = smtplib.SMTP_SSL('smtp.naver.com')
-mailServer.login('보내는주소', '비밀번호')  # 본인 계정과 비밀번호 사용.
+mailServer.login('보내는이메일', '비밀번호')  # 본인 계정과 비밀번호 사용.
 mailServer.send_message(msg)
 mailServer.quit()

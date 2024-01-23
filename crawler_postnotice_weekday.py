@@ -91,6 +91,15 @@ def crawler(key_word):
             print(len(row_data))
             df.loc[len(df)] = row_data
 
+        # 테이블 로우 단위의 공고 링크 수집
+        link_list = []
+
+        links = driver.find_elements(By.XPATH, '//*[@id="resultForm"]/div[2]/table/tbody/tr/td[4]/div/a')
+        for i in range(len(links)):
+            link_list.append(links[i].get_attribute('href'))
+
+        df['공고링크'] = link_list
+
     # 다음 페이지로 이동하기 위한 함수 선언
     def next_page():
         try:

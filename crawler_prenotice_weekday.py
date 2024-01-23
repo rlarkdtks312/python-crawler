@@ -21,8 +21,6 @@ from selenium.webdriver.common.by import By
 # Chrome driver 자동 업데이트
 from webdriver_manager.chrome import ChromeDriverManager 
 
-
-
 # Chrome driver Manager를 통해 크롬 드라이버 자동 설치 > 최신 버전을 설치 > Service에 저장
 service = Service(excutable_path=ChromeDriverManager().install())
 options = Options()
@@ -54,8 +52,6 @@ def crawler(key_word):
     search_box.clear()
     search_box.send_keys(key_word)
 
-
-
     start_date = driver.find_element(By.XPATH, '//*[@id="toRcptDt"]')
     start_date.clear()
     start_date.send_keys(today)
@@ -71,8 +67,6 @@ def crawler(key_word):
     # 검색버튼 누르기
     search_button = driver.find_element(By.XPATH, '//*[@id="frmSearch1"]/div[3]/div/a[1]/span')
     search_button.click()
-
-
 
     # 데이터프레임 틀 생성
     table_head = driver.find_element(By.XPATH, '//*[@id="container"]/div/table/thead')
@@ -95,6 +89,17 @@ def crawler(key_word):
             print(len(row_data))
             df.loc[len(df)] = row_data
 
+        # 테이블 로우 단위의 공고 링크 수집
+        link_list = []
+        links = driver.find_elements(By.XPATH, '//*[@id="container"]/div/table/tbody/tr/td[4]/div/a')
+        
+        for i in range(len(links)):
+            links[i].click()
+            link_list.append(driver.current_url)
+            driver.back()
+            links = driver.find_elements(By.XPATH, '//*[@id="container"]/div/table/tbody/tr/td[4]/div/a')
+        df['공고링크'] = link_list
+
     # 첫 페이지 크롤링, df변수에 행단위 크롤링 후 데이터 삽입 함수 실행
     row_crawler()
 
@@ -103,7 +108,6 @@ def crawler(key_word):
         page_elements = driver.find_element(By.XPATH, '//*[@id="pagination"]')
         page_list = page_elements.text.split(' ')
         page_list
-
 
         # 크롤링
         if len(page_list) < 12:
