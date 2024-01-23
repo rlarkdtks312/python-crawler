@@ -1,8 +1,8 @@
 ## Python Crawler Program ##
 - 목적: 나라장터 사전규격 및 본 공고 정보 크롤링
 - 코드 설명
-    - crawler_prenotice_weekday.py : 매주 화요일 수요일에 나라장터 사전규격 공고 정보 크롤링 및 저장
-    - crawler_postnotice_weekday.py : 매주 화요일 수요일에 나라장터 본 공고 정보 크롤링 및 저장
+    - crawler_prenotice_weekday.py : 매주 화요일 금요일에 나라장터 사전규격 공고 정보 크롤링 및 저장
+    - crawler_postnotice_weekday.py : 매주 화요일 금요일에 나라장터 본 공고 정보 크롤링 및 저장
     - main.py : 위 두개 코드를 모두 실행하여 이메일을 발송하는 코드
     - 상세 내역은 코드내 주석 참조
 
