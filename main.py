@@ -23,6 +23,8 @@ if weekday == 1:
     preday = (datetime.today() - timedelta(4)).strftime("%Y%m%d") # 지난 금요일부터 이번 화요일까지
 elif weekday == 4:
     preday = (datetime.today() - timedelta(3)).strftime("%Y%m%d") # 지난 화요일부터 이번 금요일까지
+else:
+    preday = (datetime.today() - timedelta(7)).strftime("%Y%m%d") # 화, 금요일 이외 실행시 1주일치 데이터 수집
 
 # id 정보 불러오기, 깃허브 업로드를 위한 다른 text 파일에서 email 정보를 가져옵니다 실제로 사용하실떄는 직접 이메일과 패트워드 정보를 입력하시면 사용가능합니다.
 filename = 'email_info.txt'
@@ -34,10 +36,10 @@ info_list = [info.replace('\n', '') for info in info_list]
 msg = MIMEMultipart()
 
 msg['From'] = info_list[1]
-msg['To'] = info_list[0]
+msg['To'] = info_list[0] # 여러주소에 메일을 보내려면 ', ' 단위로 묶어주세요 ex) 'ABC@mail, BCA@mail, CAB@mail'
 msg['Date'] = formatdate(localtime=True)
 msg['Subject'] = Header(s=f'나라장터 크롤링 결과({preday}~{today}) 공유 드립니다.', charset='utf-8')
-body = MIMEText('첨부된 파일 2개를 확인해 주세요.', _charset='utf-8')
+body = MIMEText('나라장터 크롤링 결과 공유드립니다.\n키워드 : 데이터, AI, 인공지능, NAS, 환경성보장제\n첨부된 파일 2개를 확인해 주세요.', _charset='utf-8')
 msg.attach(body)
 
 files = list()
