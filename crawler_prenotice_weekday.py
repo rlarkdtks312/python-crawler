@@ -82,7 +82,6 @@ def crawler(key_word):
         table_rows = table_body.text.split('\n')
         chunk_size = len(table_columns)
         table_rows = [table_rows[i:i + chunk_size] for i in range(0, len(table_rows), chunk_size)]
-        table_rows[0]
 
         # 데이터 프레임에 행단위로 삽입
         for row_data in tqdm(table_rows): # 행단위 데이터 삽입
@@ -157,5 +156,6 @@ for key_word in key_words:
         pass
 
 result_df = pd.concat(dfs, axis=0)
-result_df.to_csv(f'./사전규격 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
+df_deduplicated = result_df.drop_duplicates(subset=result_df.columns.difference(['키워드']))
+df_deduplicated.to_csv(f'./사전규격 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
 driver.quit()

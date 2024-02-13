@@ -39,7 +39,7 @@ msg['From'] = info_list[1]
 msg['To'] = info_list[0] # 여러주소에 메일을 보내려면 ', ' 단위로 묶어주세요 ex) 'ABC@mail, BCA@mail, CAB@mail'
 msg['Date'] = formatdate(localtime=True)
 msg['Subject'] = Header(s=f'나라장터 크롤링 결과({preday}~{today}) 공유 드립니다.', charset='utf-8')
-body = MIMEText('나라장터 크롤링 결과 공유드립니다.\n키워드 : 데이터, AI, 인공지능, NAS, 환경성보장제\n첨부된 파일 2개를 확인해 주세요.', _charset='utf-8')
+body = MIMEText('나라장터 크롤링 결과 공유드립니다.\n키워드 : 데이터, AI, 인공지능, NAS, 환경성보장제\n첨부된 파일 2개를 확인해 주시면 감사하겠습니다.', _charset='utf-8')
 msg.attach(body)
 
 files = list()

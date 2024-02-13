@@ -52,13 +52,13 @@ def crawler(key_word):
     search_box.clear()
     search_box.send_keys(key_word)
 
-    start_date = driver.find_element(By.XPATH, '//*[@id="toBidDt"]')
-    start_date.clear()
-    start_date.send_keys(today)
     end_data = driver.find_element(By.XPATH, '//*[@id="fromBidDt"]')
     end_data.clear()
     end_data.send_keys(preday)
-
+    start_date = driver.find_element(By.XPATH, '//*[@id="toBidDt"]')
+    start_date.clear()
+    start_date.send_keys(today)
+    
     # 출력목록수 최대로 조정
     ouput_counts = driver.find_element(By.XPATH, '//*[@id="recordCountPerPage"]')
     ouput_counts = Select(ouput_counts)
@@ -84,11 +84,10 @@ def crawler(key_word):
         table_rows = table_body.text.split('\n')
         chunk_size = 9
         table_rows = [table_rows[i:i + chunk_size] for i in range(0, len(table_rows), chunk_size)]
-        table_rows[5]
 
         # 데이터 프레임에 행단위로 삽입
         for row_data in tqdm(table_rows): # 행단위 데이터 삽입
-            print(len(row_data))
+            print(row_data)
             df.loc[len(df)] = row_data
 
         # 테이블 로우 단위의 공고 링크 수집
@@ -131,5 +130,6 @@ for key_word in key_words:
         pass
 
 result_df = pd.concat(dfs, axis=0)
-result_df.to_csv(f'./본공고 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
+df_deduplicated = result_df.drop_duplicates(subset=result_df.columns.difference(['키워드']))
+df_deduplicated.to_csv(f'./본공고 {preday} ~ {today}.csv', encoding='utf-8-sig', index=False)
 driver.quit()
